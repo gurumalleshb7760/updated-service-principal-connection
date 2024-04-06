@@ -11,12 +11,14 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '7.0.x' # set this to the dotnet version to use
+  DOTNET_VERSION: 'v4.0' # set this to the dotnet version to use
 
 jobs:
   build-and-deploy:
     runs-on: windows-latest
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
@@ -33,6 +35,13 @@ jobs:
           dotnet build --configuration Release --output ./output
           popd
       
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_412705AE9856499EB0ABABD02B80E827 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_26E688D3CCCA4153A1FA6EE2C3311603 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_99B7A1DE75964262A3D36689538EA8F0 }}
+
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
@@ -40,4 +49,4 @@ jobs:
           app-name: 'jjapp'
           slot-name: 'Production'
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1FC6851550A74BDB8EC9CBC27CB0A50E }}
+          
